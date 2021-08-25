@@ -1,122 +1,187 @@
-import 'package:country_code_picker/country_code_picker.dart';
+import 'package:country_pickers/country.dart';
+import 'package:country_pickers/country_pickers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:registration_page_ui/otp.dart';
 
-void main() => runApp(new MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return new MaterialApp(
+void main() => runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
       routes: <String, WidgetBuilder>{
-        '/otp': (BuildContext context) => new OtpPage()
+        '/otp': (BuildContext context) => new OtpPage(
+              phoneNumber: '',
+            )
       },
-      home: new MyHomePage(),
-    );
-  }
-}
+      home: RegistrationScreen(),
+    ));
 
-// ignore: must_be_immutable
-class MyHomePage extends StatefulWidget {
+class RegistrationScreen extends StatefulWidget {
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
-
-  TextEditingController phoneController = new TextEditingController();
-  String phoneNumber = "";
-
-  // ignore: unused_element
-  void _onCountryChange(CountryCode countryCode) {
-    this.phoneNumber = countryCode.toString();
-    print("Full Text: " + this.phoneNumber + phoneController.text);
-  }
+  _RegistrationScreenState createState() => _RegistrationScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  var check;
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  static Country _selectedFilteredDialogCountry =
+      CountryPickerUtils.getCountryByPhoneCode("62");
 
-  get phoneController => null;
+  TextEditingController _phoneAuthController = TextEditingController();
 
-  get _onCountryChange => null;
+  @override
+  void dispose() {
+    _phoneAuthController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final phone = new TextFormField(
-      controller: phoneController,
-      keyboardType: TextInputType.phone,
-      autofocus: false,
-      style: new TextStyle(
-          fontSize: 14.0, color: Colors.black, fontWeight: FontWeight.w400),
-    );
-    return new Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      body: Container(
+        margin: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+        child: Column(
           children: <Widget>[
-            Container(
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                      padding: EdgeInsets.fromLTRB(20.0, 65.0, 0.0, 0.0),
-                      child: Center(
-                        child: Text('Verify your mobile number',
-                            style: TextStyle(
-                                fontSize: 20.0, fontWeight: FontWeight.w700),
-                            textAlign: TextAlign.center),
-                      )),
-                  Container(
-                    padding: EdgeInsets.fromLTRB(16.0, 125.0, 0.0, 0.0),
-                    child: Text(
-                        'Enter your phone number, so we will send you Verification Code.',
-                        style: TextStyle(
-                            fontSize: 15.0, fontWeight: FontWeight.w500),
-                        textAlign: TextAlign.center),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(''),
+                Text(
+                  "Verify your mobile number",
+                  style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                ),
+                Text('')
+              ],
+            ),
+            SizedBox(height: 30),
+            Text(
+              "Enter your phone number, so we will send you Verification Code.",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
+            ),
+            SizedBox(
+              height: 50,
+            ),
+            ListTile(
+              onTap: _openFilteredCountryPickerDialog,
+              title: _buildDialogItem(_selectedFilteredDialogCountry),
+            ),
+            Row(
+              children: <Widget>[
+                Container(
+                  decoration: BoxDecoration(
+                      border: Border(
+                          bottom: BorderSide(
+                    width: 1.0,
+                    color: Colors.green,
+                  ))),
+                  width: 80,
+                  height: 42,
+                  alignment: Alignment.center,
+                  child: Icon(Icons.phone_android),
+                ),
+                SizedBox(
+                  width: 8.0,
+                ),
+                Expanded(
+                  child: Container(
+                    height: 40,
+                    child: TextField(
+                      controller: _phoneAuthController,
+                      decoration: InputDecoration(hintText: "Phone Number"),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                    ),
                   ),
-                ],
+                ),
+              ],
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: MaterialButton(
+                  color: Colors.green,
+                  minWidth: double.infinity,
+                  height: 50,
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('/otp');
+                  },
+                  child: Text(
+                    "Get The Code",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ),
-            Container(
-                padding: EdgeInsets.only(top: 35.0, left: 20.0, right: 20.0),
-                child: Column(
-                  children: <Widget>[
-                    CountryCodePicker(
-                      onChanged: _onCountryChange,
-                      initialSelection: "ID",
-                      favorite: ['+62', 'ID'],
-                      showCountryOnly: true,
-                      showOnlyCountryWhenClosed: true,
-                      alignLeft: true,
-                    ),
-                    SizedBox(height: 16.0),
-                    phone,
-                    SizedBox(height: 40.0),
-                    Container(
-                      height: 40.0,
-                      child: Material(
-                        shadowColor: Colors.greenAccent,
-                        color: Colors.green,
-                        elevation: 7.0,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).pushNamed('/otp');
-                          },
-                          child: Center(
-                            child: Text(
-                              'Get The Code',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20.0),
-                  ],
-                )),
-            SizedBox(height: 15.0),
+            Expanded(
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  "By signing up, you agree to the Privacy and Terms of Service.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
+                ),
+              ),
+            ),
           ],
-        ));
+        ),
+      ),
+    );
+  }
+
+  void _openFilteredCountryPickerDialog() {
+    showDialog(
+        context: context,
+        builder: (_) => Theme(
+              data: Theme.of(context).copyWith(primaryColor: Colors.blueGrey),
+              child: CountryPickerDialog(
+                titlePadding: EdgeInsets.all(8.0),
+                searchCursorColor: Colors.black,
+                searchInputDecoration: InputDecoration(
+                  hintText: "Search",
+                ),
+                isSearchable: true,
+                title: Text("Select your phone code"),
+                onValuePicked: (Country country) {
+                  setState(() {
+                    _selectedFilteredDialogCountry = country;
+                  });
+                },
+                itemBuilder: _buildDialogItem,
+              ),
+            ));
+  }
+
+  Widget _buildDialogItem(Country country) {
+    return Container(
+      height: 40,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.green, width: 1),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          CountryPickerUtils.getDefaultFlagImage(country),
+          SizedBox(
+            width: 8.0,
+          ),
+          Text("${country.name}"),
+          SizedBox(
+            width: 8.0,
+          ),
+          Text("(+${country.phoneCode})"),
+          Spacer(),
+          Icon(Icons.chevron_right)
+        ],
+      ),
+    );
   }
 }
